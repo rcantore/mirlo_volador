@@ -26,3 +26,104 @@ canvas {
 body.gameplay {
   cursor: none;
 }
+
+/* Score form overlay */
+#score-form {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: rgba(0, 0, 0, 0.7);
+  backdrop-filter: blur(4px);
+}
+
+#score-form.hidden {
+  display: none;
+}
+
+.form-card {
+  background: #1a1a2e;
+  border: 2px solid #FFD700;
+  border-radius: 16px;
+  padding: 32px 28px;
+  width: 320px;
+  max-width: 90vw;
+  text-align: center;
+  font-family: Arial, sans-serif;
+}
+
+.form-card h2 {
+  color: #FFD700;
+  font-size: 24px;
+  margin-bottom: 8px;
+}
+
+.form-score {
+  color: #fff;
+  font-size: 18px;
+  margin-bottom: 20px;
+}
+
+.score-value {
+  font-weight: bold;
+  font-size: 28px;
+  color: #FFD700;
+}
+
+.form-card form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.form-card input {
+  padding: 10px 14px;
+  border: 1px solid #444;
+  border-radius: 8px;
+  background: #0f0f23;
+  color: #fff;
+  font-size: 16px;
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.form-card input:focus {
+  border-color: #FFD700;
+}
+
+.form-card input::placeholder {
+  color: #666;
+}
+
+.form-card button[type="submit"] {
+  padding: 12px;
+  border: none;
+  border-radius: 8px;
+  background: #FFD700;
+  color: #1a1a2e;
+  font-size: 16px;
+  font-weight: bold;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.form-card button[type="submit"]:hover {
+  background: #ffdf33;
+}
+
+.form-card .skip-btn {
+  padding: 8px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: #888;
+  font-size: 14px;
+  cursor: pointer;
+  transition: color 0.2s;
+}
+
+.form-card .skip-btn:hover {
+  color: #fff;
+}

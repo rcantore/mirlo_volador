@@ -50,3 +50,10 @@ export interface Rect {
   width: number;
   height: number;
 }
+
+export interface LeaderboardEntry {
+  name: string;
+  email: string;
+  score: number;
+  date: string;
+}

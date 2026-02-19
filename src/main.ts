@@ -1,5 +1,10 @@
 import { Game } from './game';
+import { inject } from '@vercel/analytics';
+import { injectSpeedInsights } from '@vercel/speed-insights';
 import './style.css';
+
+inject();
+injectSpeedInsights();
 
 async function main(): Promise<void> {
   const canvas = document.getElementById('game-canvas') as HTMLCanvasElement;

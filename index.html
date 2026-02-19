@@ -12,6 +12,18 @@
   </head>
   <body>
     <canvas id="game-canvas"></canvas>
+    <div id="score-form" class="hidden">
+      <div class="form-card">
+        <h2>New Score!</h2>
+        <p class="form-score">You scored <span class="score-value">0</span></p>
+        <form>
+          <input type="text" name="name" placeholder="Your name" required maxlength="20" autocomplete="off" />
+          <input type="email" name="email" placeholder="Your email" required autocomplete="email" />
+          <button type="submit">Save to Leaderboard</button>
+          <button type="button" class="skip-btn">Skip</button>
+        </form>
+      </div>
+    </div>
     <script type="module" src="/src/main.ts"></script>
   </body>
 </html>

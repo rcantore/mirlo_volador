@@ -1,4 +1,4 @@
-import { GameState, HandPosition, ScoreState } from './types';
+import { GameState, HandPosition, ScoreState, LeaderboardEntry } from './types';
 import { CONFIG, getDifficultySpeed, getDifficultyGap } from './constants';
 import { createBird, updateBird, getBirdHitbox, drawBird } from './bird';
 import { PipeManager } from './pipes';
@@ -9,6 +9,8 @@ import { drawHandIndicator, drawStateOverlay } from './ui';
 import { HandTracker } from './hand-tracker';
 import { Camera } from './camera';
 import { AudioManager } from './audio';
+import { getLeaderboard, addEntry, promptScoreEntry } from './leaderboard';
+import { track } from '@vercel/analytics';
 
 export class Game {
   private ctx: CanvasRenderingContext2D;
@@ -26,6 +28,8 @@ export class Game {
   private gameOverTime = 0;
   private animFrameId = 0;
   private handPosition: HandPosition = { y: 0.5, detected: false, confidence: 0 };
+  private waitingForScoreForm = false;
+  private leaderboardCache: LeaderboardEntry[] = [];
 
   constructor(private canvas: HTMLCanvasElement) {
     const ctx = canvas.getContext('2d');
@@ -152,6 +156,7 @@ export class Game {
   }
 
   private updateGameOver(): void {
+    if (this.waitingForScoreForm) return;
     const elapsed = (performance.now() - this.gameOverTime) / 1000;
     if (elapsed >= CONFIG.restartCooldown && this.handPosition.detected) {
       this.restart();
@@ -193,8 +198,9 @@ export class Game {
     drawHandIndicator(ctx, this.handPosition.detected);
 
     // State overlay
-    const canRestart = (performance.now() - this.gameOverTime) / 1000 >= CONFIG.restartCooldown;
-    drawStateOverlay(ctx, this.state, this.score, this.handPosition.detected, canRestart);
+    const canRestart = !this.waitingForScoreForm
+      && (performance.now() - this.gameOverTime) / 1000 >= CONFIG.restartCooldown;
+    drawStateOverlay(ctx, this.state, this.score, this.handPosition.detected, canRestart, this.leaderboardCache);
   }
 
   private startGame(): void {
@@ -204,6 +210,7 @@ export class Game {
     this.handDetectedTime = 0;
     this.audio.playSwoosh();
     this.audio.startMusic();
+    track('game_start');
   }
 
   private gameOver(): void {
@@ -211,6 +218,21 @@ export class Game {
     this.gameOverTime = performance.now();
     this.audio.stopMusic();
     this.audio.playCrash();
+    this.leaderboardCache = getLeaderboard();
+    track('game_over', { score: this.score.current });
+    this.showScoreForm();
+  }
+
+  private async showScoreForm(): Promise<void> {
+    if (this.score.current === 0) return;
+    this.waitingForScoreForm = true;
+    const result = await promptScoreEntry(this.score.current);
+    if (result) {
+      this.leaderboardCache = addEntry(result.name, result.email, this.score.current);
+      track('score_submitted', { score: this.score.current });
+    }
+    this.waitingForScoreForm = false;
+    this.gameOverTime = performance.now();
   }
 
   private restart(): void {

@@ -1,4 +1,4 @@
-import { GameState, ScoreState } from './types';
+import { GameState, ScoreState, LeaderboardEntry } from './types';
 import { CONFIG, COLORS } from './constants';
 
 export function drawHandIndicator(
@@ -56,36 +56,72 @@ export function drawMenuOverlay(ctx: CanvasRenderingContext2D, handDetected: boo
 export function drawGameOverOverlay(
   ctx: CanvasRenderingContext2D,
   score: ScoreState,
-  canRestart: boolean
+  canRestart: boolean,
+  leaderboard: LeaderboardEntry[]
 ): void {
   // Overlay
   ctx.fillStyle = COLORS.menuOverlay;
   ctx.fillRect(0, 0, CONFIG.canvasWidth, CONFIG.canvasHeight);
 
+  const cx = CONFIG.canvasWidth / 2;
+
   // Game Over text
   ctx.font = 'bold 48px Arial, sans-serif';
   ctx.textAlign = 'center';
   ctx.fillStyle = '#FF4444';
-  ctx.fillText('Game Over', CONFIG.canvasWidth / 2, CONFIG.canvasHeight / 2 - 60);
+  ctx.fillText('Game Over', cx, 200);
 
   // Score
   ctx.font = 'bold 32px Arial, sans-serif';
   ctx.fillStyle = COLORS.menuText;
-  ctx.fillText(`Score: ${score.current}`, CONFIG.canvasWidth / 2, CONFIG.canvasHeight / 2);
+  ctx.fillText(`Score: ${score.current}`, cx, 252);
 
   // Best score
   ctx.font = '24px Arial, sans-serif';
   ctx.fillStyle = '#FFD700';
-  ctx.fillText(`Best: ${score.best}`, CONFIG.canvasWidth / 2, CONFIG.canvasHeight / 2 + 40);
+  ctx.fillText(`Best: ${score.best}`, cx, 288);
+
+  // Leaderboard
+  if (leaderboard.length > 0) {
+    ctx.font = 'bold 18px Arial, sans-serif';
+    ctx.fillStyle = '#FFD700';
+    ctx.fillText('Leaderboard', cx, 340);
+
+    const top5 = leaderboard.slice(0, 5);
+    for (let i = 0; i < top5.length; i++) {
+      const entry = top5[i];
+      const y = 370 + i * 30;
+
+      // Rank
+      ctx.font = 'bold 16px Arial, sans-serif';
+      ctx.textAlign = 'left';
+      ctx.fillStyle = i === 0 ? '#FFD700' : i === 1 ? '#C0C0C0' : i === 2 ? '#CD7F32' : '#FFFFFF';
+      ctx.fillText(`${i + 1}.`, cx - 130, y);
+
+      // Name
+      ctx.font = '16px Arial, sans-serif';
+      ctx.fillText(truncate(entry.name, 14), cx - 105, y);
+
+      // Score
+      ctx.textAlign = 'right';
+      ctx.font = 'bold 16px Arial, sans-serif';
+      ctx.fillText(String(entry.score), cx + 130, y);
+    }
+  }
 
   // Restart instruction
+  ctx.textAlign = 'center';
   ctx.font = '18px Arial, sans-serif';
   ctx.fillStyle = canRestart ? COLORS.menuText : 'rgba(255,255,255,0.4)';
   ctx.fillText(
     canRestart ? 'Raise your hand to play again' : 'Wait...',
-    CONFIG.canvasWidth / 2,
-    CONFIG.canvasHeight / 2 + 90
+    cx,
+    CONFIG.canvasHeight - CONFIG.groundHeight - 30
   );
+}
+
+function truncate(str: string, max: number): string {
+  return str.length > max ? str.slice(0, max - 1) + '\u2026' : str;
 }
 
 export function drawStateOverlay(
@@ -93,11 +129,12 @@ export function drawStateOverlay(
   state: GameState,
   score: ScoreState,
   handDetected: boolean,
-  canRestart: boolean
+  canRestart: boolean,
+  leaderboard: LeaderboardEntry[]
 ): void {
   if (state === 'menu') {
     drawMenuOverlay(ctx, handDetected);
   } else if (state === 'gameover') {
-    drawGameOverOverlay(ctx, score, canRestart);
+    drawGameOverOverlay(ctx, score, canRestart, leaderboard);
   }
 }
