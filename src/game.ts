@@ -32,24 +32,44 @@ export class Game {
     if (!ctx) throw new Error('Cannot get 2D context');
     this.ctx = ctx;
     this.setupCanvas();
+
+    // Re-fit on resize and orientation change
+    window.addEventListener('resize', () => this.setupCanvas());
+    window.addEventListener('orientationchange', () => {
+      setTimeout(() => this.setupCanvas(), 100);
+    });
   }
 
   private setupCanvas(): void {
     const dpr = window.devicePixelRatio || 1;
-    // Scale to fill viewport height while keeping aspect ratio
-    const aspect = CONFIG.canvasWidth / CONFIG.canvasHeight;
-    const cssHeight = window.innerHeight;
-    const cssWidth = Math.min(window.innerWidth, cssHeight * aspect);
-    const scale = cssHeight / CONFIG.canvasHeight;
+    const gameAspect = CONFIG.canvasWidth / CONFIG.canvasHeight;
+    const winW = window.innerWidth;
+    const winH = window.innerHeight;
+    const winAspect = winW / winH;
 
-    // Buffer matches actual screen pixels
+    let cssWidth: number;
+    let cssHeight: number;
+
+    if (winAspect > gameAspect) {
+      // Window is wider than game — fit to height (landscape PC, wide tablet)
+      cssHeight = winH;
+      cssWidth = winH * gameAspect;
+    } else {
+      // Window is narrower than game — fit to width (portrait phone)
+      cssWidth = winW;
+      cssHeight = winW / gameAspect;
+    }
+
+    const scale = cssWidth / CONFIG.canvasWidth;
+
+    // Buffer matches actual screen pixels for crisp rendering
     this.canvas.width = Math.round(cssWidth * dpr);
     this.canvas.height = Math.round(cssHeight * dpr);
     // CSS logical size
     this.canvas.style.width = `${cssWidth}px`;
     this.canvas.style.height = `${cssHeight}px`;
-    // Scale context so game code still uses CONFIG coordinates
-    this.ctx.scale(scale * dpr, scale * dpr);
+    // Reset and scale context so game code still uses CONFIG coordinates
+    this.ctx.setTransform(scale * dpr, 0, 0, scale * dpr, 0, 0);
   }
 
   async init(): Promise<void> {
