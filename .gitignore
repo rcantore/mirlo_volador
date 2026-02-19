@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.claude/
+.claude-flow/
+.swarm/
+.mcp.json
+.env
+.DS_Store
+*.local
